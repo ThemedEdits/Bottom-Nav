@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Bottom Navigation with Pages</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .page-title {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .page-content {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            color: #6c5ce7;
+            margin-bottom: 10px;
+        }
+
+        .bottom-nav {
+            position: relative;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #fff;
+            border-radius: 20px 20px 0 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+            z-index: 10;
+        }
+
+        .nav-item {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            z-index: 1;
+        }
+
+        .nav-item.active {
+            transform: translateY(-5px);
+        }
+
+        .nav-icon {
+            font-size: 1.4rem;
+            color: #888;
+            transition: all 0.3s ease;
+            margin-bottom: 5px;
+        }
+
+        .nav-item.active .nav-icon {
+            color: #6c5ce7;
+            transform: scale(1.1);
+        }
+
+        .nav-text {
+            font-size: 0.7rem;
+            color: #888;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .nav-item.active .nav-text {
+            opacity: 1;
+            transform: translateY(0);
+            color: #6c5ce7;
+        }
+
+        .nav-indicator {
+            position: absolute;
+            top: 58px;
+            left: 0;
+            width: 25%;
+            height: 3px;
+            background-color: #6c5ce7;
+            border-radius: 3px;
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+
+        .nav-item:hover .nav-icon {
+            color: #6c5ce7;
+            transform: scale(1.1);
+        }
+
+        .nav-item:hover .nav-text {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(108, 92, 231, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(108, 92, 231, 0); }
+        }
+
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: transparent;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 1.5s infinite;
+            z-index: -1;
+        }
+
+        /* Home page specific styles */
+        .welcome-banner {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Search page specific styles */
+        .search-bar {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 30px 0 0 30px;
+            font-size: 1rem;
+            outline: none;
+            width: 100%;
+            transition: border-color 0.3s;
+        }
+
+        .search-bar input:focus {
+            border-color: #6c5ce7;
+        }
+
+        .search-bar button {
+            background: #6c5ce7;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-bar button:hover {
+            background: #5649c0;
+        }
+
+        /* Favorites page specific styles */
+        .favorite-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+
+        .favorite-item:last-child {
+            border-bottom: none;
+        }
+
+        .favorite-icon {
+            color: #ff7675;
+            margin-right: 15px;
+            font-size: 1.2rem;
+        }
+
+        /* Profile page specific styles */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .profile-pic {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #6c5ce7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.8rem;
+            margin-right: 15px;
+        }
+
+        .profile-info h3 {
+            margin: 0;
+            color: #333;
+        }
+
+        .profile-info p {
+            margin: 5px 0 0;
+            color: #888;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 10px;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #6c5ce7;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="content-area">
+        <!-- Home Page -->
+        <div class="page active" id="home-page">
+            <h1 class="page-title">Welcome Back!</h1>
+            <div class="welcome-banner">
+                <h2>Hello, User!</h2>
+                <p>Discover what's new today</p>
+            </div>
+            <div class="page-content">
+                <div class="card">
+                    <h3 class="card-title">Recent Activity</h3>
+                    <p>You have 3 new notifications</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Daily Tips</h3>
+                    <p>Try our new meditation exercises for better focus</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Trending Now</h3>
+                    <p>Join the community challenge starting tomorrow</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Page -->
+        <div class="page" id="search-page">
+            <h1 class="page-title">Search</h1>
+            <div class="page-content">
+                <div class="search-bar">
+                    <input type="text" placeholder="Search">
+                    <button><i class="fas fa-search"></i></button>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Popular Searches</h3>
+                    <ul style="list-style-type: none;">
+                        <li>• Web Development</li>
+                        <li>• UI Design</li>
+                        <li>• Mobile Apps</li>
+                        <li>• Photography</li>
+                    </ul>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Recent Searches</h3>
+                    <p>JavaScript frameworks</p>
+                    <p>CSS animations</p>
+                    <p>Modern navigation</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Favorites Page -->
+        <div class="page" id="favorites-page">
+            <h1 class="page-title">Favorites</h1>
+            <div class="page-content">
+                <div class="card">
+                    <h3 class="card-title">Saved Items</h3>
+                    <div class="favorite-item">
+                        <i class="fas fa-heart favorite-icon"></i>
+                        <div>
+                            <h4>Modern UI Design</h4>
+                            <p>Saved 2 days ago</p>
+                        </div>
+                    </div>
+                    <div class="favorite-item">
+                        <i class="fas fa-heart favorite-icon"></i>
+                        <div>
+                            <h4>CSS Animation Techniques</h4>
+                            <p>Saved 1 week ago</p>
+                        </div>
+                    </div>
+                    <div class="favorite-item">
+                        <i class="fas fa-heart favorite-icon"></i>
+                        <div>
+                            <h4>JavaScript Best Practices</h4>
+                            <p>Saved 3 weeks ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Page -->
+        <div class="page" id="profile-page">
+            <h1 class="page-title">Profile</h1>
+            <div class="page-content">
+                <div class="profile-header">
+                    <div class="profile-pic">JS</div>
+                    <div class="profile-info">
+                        <h3>John Smith</h3>
+                        <p>UI/UX Designer</p>
+                    </div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value">142</div>
+                        <div class="stat-label">Posts</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">3.2K</div>
+                        <div class="stat-label">Followers</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">256</div>
+                        <div class="stat-label">Following</div>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">About</h3>
+                    <p>Creative designer passionate about building beautiful user experiences. Currently working on mobile app interfaces.</p>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Settings</h3>
+                    <p>Notification Preferences</p>
+                    <p>Account Security</p>
+                    <p>Dark Mode</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-indicator"></div>
+        <div class="nav-item active" data-index="0" data-target="home-page">
+            <i class="fas fa-home nav-icon"></i>
+            <span class="nav-text">Home</span>
+        </div>
+        <div class="nav-item" data-index="1" data-target="search-page">
+            <i class="fas fa-search nav-icon"></i>
+            <span class="nav-text">Search</span>
+        </div>
+        <div class="nav-item" data-index="2" data-target="favorites-page">
+            <i class="fas fa-heart nav-icon"></i>
+            <span class="nav-text">Favorites</span>
+        </div>
+        <div class="nav-item" data-index="3" data-target="profile-page">
+            <i class="fas fa-user nav-icon"></i>
+            <span class="nav-text">Profile</span>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const navItems = document.querySelectorAll('.nav-item');
+            const navIndicator = document.querySelector('.nav-indicator');
+            const pages = document.querySelectorAll('.page');
+            
+            // Set initial position
+            updateIndicator(document.querySelector('.nav-item.active'));
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    // Remove active class from all items and pages
+                    navItems.forEach(navItem => navItem.classList.remove('active'));
+                    pages.forEach(page => page.classList.remove('active'));
+                    
+                    // Add active class to clicked item
+                    this.classList.add('active');
+                    
+                    // Show corresponding page
+                    const targetPage = document.getElementById(this.getAttribute('data-target'));
+                    targetPage.classList.add('active');
+                    
+                    // Update indicator position
+                    updateIndicator(this);
+                });
+            });
+            
+            function updateIndicator(activeItem) {
+                const index = parseInt(activeItem.getAttribute('data-index'));
+                const itemWidth = 100 / navItems.length;
+                const indicatorWidth = itemWidth / 2;
+                
+                // Calculate new position
+                const newPosition = index * itemWidth + (itemWidth - indicatorWidth) / 2;
+                
+                // Update indicator
+                navIndicator.style.width = `${indicatorWidth}%`;
+                navIndicator.style.left = `${newPosition}%`;
+            }
+        });
+    </script>
+</body>
+</html>
